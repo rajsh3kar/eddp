@@ -1,4 +1,3 @@
-comm.py contains simulation paramters and functions to compute the system model
-multiagent.py code contains the environment
-plese use sb3 and gymnasium lateset version 
-Note : Proper documnetation is underway
+comm.py contains simulation parameters and functions to compute the system model.
+multiagent.py code has the environment; please use sb3 and gymnasium latest versions. 
+Note: Proper documentation is underway
