@@ -55,8 +55,8 @@ class DDP_multi_env(gymnasium.Env):
     def __init__(self,n_ue):
         #random.seed(random_seed)
         self.observation_space =gymnasium.spaces.Box(low=np.array(
-            [[0, 0, A_min, 0,]]*N_DBS ), high=np.array([[AREA, AREA ,A_max, B]]*N_DBS, dtype=np.int32))
-        self.action_space = gymnasium.spaces.Box(low=np.array([-1]*N_DBS), high=np.array([1]*N_DBS),dtype = np.int32)
+            [[0, 0, A_min, 0,]]*N_DBS ), high=np.array([[AREA, AREA ,A_max, B]]*N_DBS, dtype=np.float32))
+        self.action_space = gymnasium.spaces.Box(low=np.array([-1]*N_DBS), high=np.array([1]*N_DBS),dtype = np.float32)
         
         self.n_ue = n_ue
         self.drone_postion = None
