@@ -1,75 +1,109 @@
-'''
-SIMULATION PARAMTERS
+"""import numpy as np
+#simulation parameters
 
-'''
+R_c = 500 #range of communication
+alpha = 9.6
+beta= 0.28
+UAV_alti = 100
+carrier_freq = 2e9 #hz
+light_speed = 3e8 #m/s
+ksi_los = 1  # Additional LOS path loss (dB)
+ksi_nlos = 20  # Additional NLOS path loss (dB)
+UAV_tp = 40 #dBm
+Gauss_noise = -174 #dBm
+
+def prob_los(horizonta_ue_UAV):
+    theta = np.arctan(UAV_alti/horizonta_ue_UAV)
+    return 1 / (1 + alpha * np.exp(-beta * (np.rad2deg(theta) - alpha)))
+
+def distance(x,y):
+    return np.sqrt((y[1]-x[1])**2+(y[0]-x[0])**2)
+
+def Los(distance):
+    return 20*np.log10(distance)+ 20* np.log10(carrier_freq) + 20*np.log10(4*np.pi/light_speed)+ksi_los
+def NLos(distance):
+    return 20*np.log10(distance)+ 20* np.log10(carrier_freq) + 20*np.log10(4*np.pi/light_speed)+ksi_nlos
+def path_loss(x,y):
+    horizonta_ue_UAV= distance(x,y)
+    distance_ue_UAV = np.sqrt(horizonta_ue_UAV**2 + UAV_alti**2)
+    prob = prob_los(horizonta_ue_UAV) 
+    los = Los( distance_ue_UAV)
+    nlos = NLos( distance_ue_UAV)
+    return prob*los + (1-prob)*nlos
+def dbm_to_watt(dbm):
+   
+    return 10 ** (dbm / 10.0) / 1000.0
+def SINR(UAV_obj,UAV,UE):
+
+    pl = path_loss(UAV.get_position(),UE.get_position())
+    ptx = dbm_to_watt(UAV_tp)
+    noise_power = dbm_to_watt(Gauss_noise)
+    t1 = pl * ptx
+    a = 0
+    for k in UAV_obj: 
+        if k != UAV: 
+            a += path_loss(k.get_position(),UE.get_position())*ptx
+    sinr = t1/(a+noise_power)
+    sinr= 10 * np.log10(sinr)
+    UE.set_sinr(UAV,sinr)
+    return sinr
+    
+
+
+#print(path_loss([23,400],[300,550]))"""
 import numpy as np
-import math
-N_DBS = 4 #number of dbs
-N_UE = 100
-AREA = 500 # area
-F = 2e+9 #carrier frequncy
-a = 9.61 #environment dependable
-beta = 0.28 #environment 
-eLoS = 5 #dB excessive loss of LoS
-eNLoS = 20 #dB excessive loss non LoS
-sigma = -104 #dB Noise power
-B = 5e+6 # Bandwidth MhZ
-I = -95
-c  = 3e+8 #speed of light
-A_min = 50 #minimum altitude
-A_max  = 200 #maximum altitude
-Capacity = 1000000 #capacity of SOS 1M 
-unit_move = 5 # distance it travel when action performed
-tx = 20 #fixed transmission power
-low_obs = np.array([0,0,50])
-high_obs = np.array([AREA,AREA,150])
-low_ue= np.array([0,0])
-high_ue = np.array([AREA,AREA])
-low_action = 0
-high_action = 6.28319
-sinr_th = 2
-angle = math.pi/3
-def pathLoS(distance):
-    wavelength = c / F
-    return 20 * math.log10((4 * math.pi * distance) / wavelength) + eLoS
 
-def pathNLoS(distance):
-    wavelength = c / F
-    return 20 * math.log10((4 * math.pi * distance) / wavelength) + eNLoS
+# Simulation parameters
+R_c = 500  # Range of communication
+alpha = 9.6
+beta = 0.28
+UAV_alti = 100
+carrier_freq = 2e9  # Hz
+light_speed = 3e8  # m/s
+ksi_los = 1  # Additional LOS path loss (dB)
+ksi_nlos = 20  # Additional NLOS path loss (dB)
+UAV_tp = 40  # dBm
+Gauss_noise = -174  # dBm
 
+def prob_los(horizonta_ue_UAV):
+    theta = np.arctan(UAV_alti / horizonta_ue_UAV)
+    return 1 / (1 + alpha * np.exp(-beta * (np.rad2deg(theta) - alpha)))
 
-def angle_db(alti,distance):
-    return np.arcsin(alti/distance)
+def distance(x, y):
+    return np.sqrt((y[1] - x[1]) ** 2 + (y[0] - x[0]) ** 2)
 
-#probability of LoS
+def Los(distance):
+    return 20 * np.log10(distance) + 20 * np.log10(carrier_freq) + 20 * np.log10(4 * np.pi / light_speed) + ksi_los
 
-def PLoS(alti,distance):
-    angle = angle_db(alti,distance)
-    return 1 / (a + (math.exp(-beta * (angle - a))))
+def NLos(distance):
+    return 20 * np.log10(distance) + 20 * np.log10(carrier_freq) + 20 * np.log10(4 * np.pi / light_speed) + ksi_nlos
 
+def path_loss(x, y):
+    horizonta_ue_UAV = distance(x, y)
+    distance_ue_UAV = np.sqrt(horizonta_ue_UAV ** 2 + UAV_alti ** 2)
+    prob = prob_los(horizonta_ue_UAV)
+    los = Los(distance_ue_UAV)
+    nlos = NLos(distance_ue_UAV)
+    path_loss_db = prob * los + (1 - prob) * nlos
+    return dbm_to_watt(-path_loss_db)  # Convert path loss to linear scale (Watt)
 
-def AVG_PATHLOSS(alti, distance):
-    p_los = PLoS(alti, distance)
-    return p_los * pathLoS(distance) + (1 - p_los) * pathNLoS(distance)
+def dbm_to_watt(dbm):
+    """Convert power from dBm to Watts."""
+    return 10 ** (dbm / 10.0) / 1000.0
 
+def SINR(UAV_obj, UAV, UE):
+    pl = path_loss(UAV.get_position(), UE.get_position())
+    ptx = dbm_to_watt(UAV_tp)
+    noise_power = dbm_to_watt(Gauss_noise)
+    signal_power = pl * ptx
+    interference_power = 0
 
+    for k in UAV_obj:
+        if k != UAV:
+            interference_power += path_loss(k.get_position(), UE.get_position()) * ptx
 
-def SINR(alti, distance):
-    return dBm2W(tx) * (10 ** -(AVG_PATHLOSS(alti, distance) / 10)) / + (dBm2W(I)+dBm2W(sigma))
+    sinr_linear = signal_power / (interference_power + noise_power)
+    sinr_db = 10 * np.log10(sinr_linear)
+    UE.set_sinr(UAV, sinr_db)
 
-
-def bandwidth(alti,distance):
-    return Capacity /math.log(1+SINR(alti,distance))
-def dBm2W(dBm):
-    return 10**((dBm - 30)/10.)
-#print(SINR(100,650))
-#print(high_obs)
-
-
-
-def radians_to_degrees(radians_list):
-    degrees_list = []
-    for radians in radians_list:
-        degrees = radians * (180 / math.pi)
-        degrees_list.append(degrees)
-    return np.array(degrees_list, dtype=np.float32)
+    return sinr_db
